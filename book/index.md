@@ -2,8 +2,8 @@
 ## [archive  归档文件]()
 - tar 解压
 
-	 * [demo](tar_demo.md)
-	 * [笔记](tar_biji.md)
+	 * [demo](archive/tar/tar_demo.md)
+	 * [笔记](archive/tar/tar_biji.md)
 - zip 压缩
 
 	 * [demo](zip_demo.md)
