@@ -33,10 +33,22 @@ import (
 // A Client is higher-level than a RoundTripper (such as Transport)
 // and additionally handles HTTP details such as cookies and
 // redirects.
+
+//我的翻译:
+//
+//这里的Client 就是一个 HTTP Client,他的零值[默认值]是 DefaultClient
+//DefaultClient 是一个很有用的客户端 他使用DefaultTransport
+//
+//Client的传输 一般有内部状态(缓存了tcp连接),所以Clients 应该在被重新使用的时候可以复用
+//而不是去重新创建,Clients 在多个goroutines(go的协程)中使用是安全的
+//
+//客户端是比 RoundTripper(比如 Transport)要高级的东西,还有 他能处理HTTP 的一些细节
+//比如 cookies 和 redirects(重定向)
 type Client struct {
 	// Transport specifies the mechanism by which individual
 	// HTTP requests are made.
 	// If nil, DefaultTransport is used.
+	// 指定哪一种HTTP 传输机制,默认使用 DefaultTransport
 	Transport RoundTripper
 
 	// CheckRedirect specifies the policy for handling redirects.
@@ -50,11 +62,18 @@ type Client struct {
 	//
 	// If CheckRedirect is nil, the Client uses its default policy,
 	// which is to stop after 10 consecutive requests.
+	// CheckRedirect 首先这个属性的类型是一个函数
+	// 如果 CheckRedirect 这个属性为 nil 怎么怎么
+	// 如果 CheckRedirect 这个属性不为空 那么看他的返回值
+	// 经过我之前的经验 如果函数返回值返回error 那么就停止在重定向的那里
+	// 这在需要获取重定向链接的时候很有用
 	CheckRedirect func(req *Request, via []*Request) error
 
 	// Jar specifies the cookie jar.
 	// If Jar is nil, cookies are not sent in requests and ignored
 	// in responses.
+	// 指向了 cookie jar
+	// 如果为nil,cookies 在 http请求和响应的时候都会被忽略
 	Jar CookieJar
 
 	// Timeout specifies a time limit for requests made by this
@@ -85,10 +104,16 @@ var DefaultClient = &Client{}
 //
 // A RoundTripper must be safe for concurrent use by multiple
 // goroutines.
+
+// RoundTripper 是一个接口,表示一种能够执行简单的 HTTP 协议 并且能后获取请求的响应
+// 也就是说任何一个东西 只要有这个能力 那他就是 实现了该接口
+// RoundTripper 必须是协程安全的
 type RoundTripper interface {
 	// RoundTrip executes a single HTTP transaction, returning
 	// a Response for the provided Request.
 	//
+	// RoundTrip 执行一个简单 HTTP事务 ,并返回 响应给 提供的 请求
+	// HTTP事务:我的理解 一应一答
 	// RoundTrip should not attempt to interpret the response. In
 	// particular, RoundTrip must return err == nil if it obtained
 	// a response, regardless of the response's HTTP status code.
@@ -96,7 +121,11 @@ type RoundTripper interface {
 	// response. Similarly, RoundTrip should not attempt to
 	// handle higher-level protocol details such as redirects,
 	// authentication, or cookies.
-	//
+
+	// RoundTrip 不用管响应的内容,只要有响应,不管HTTP的状态码是多少
+	// 200 也好 404也罢,返回的err 都应该是nil
+	// RoundTrip 除了只能去释放 和 关闭 request,request里的东西一点都不能改
+
 	// RoundTrip should not modify the request, except for
 	// consuming and closing the Request's Body.
 	//
