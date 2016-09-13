@@ -8,10 +8,16 @@
 qq:89066216
 
 mail:goudanbaba123@gmail.com
+## 目录结构
+- src go官方库源码
+- code 一些demo
+- book 一些笔记或者小知识
 
 ## 开始
 也不知道从哪里先开始
 
-阅读顺序就按照字母顺序
+找一个用的最多的开始
+
+
 
 [开始行动](book/index.md)
