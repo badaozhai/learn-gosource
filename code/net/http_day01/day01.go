@@ -34,3 +34,10 @@ func Demo1(){
 	//<link rel="apple-touch-icon" href="http://i3.sinaimg.cn/home/2013/0331/U586P30DT20130331093840.png" />
 
 }
+
+func Demo2(){
+	resp, _ := http.Get("http://sina.com.cn")
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(body))
+}

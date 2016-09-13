@@ -5,7 +5,8 @@ import (
 )
 
 func main() {
-	http_day01_demo1()
+	//http_day01_demo1()
+	http_day01.Demo2()
 }
 func http_day01_demo1(){
 	http_day01.Demo1()

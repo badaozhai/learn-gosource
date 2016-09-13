@@ -1,7 +1,8 @@
 # go官方库源码学习
 ## [net 网络包]()
 - net/http http 相关的包
-	* [day01](net/http/day01.md)
+	* [http.Client{}结构](net/http/http_client_struct.md)
+	* [http.Get(URL string)方法](net/http/http_client_get_method.md)
 
 
 ## [archive  归档文件]()
