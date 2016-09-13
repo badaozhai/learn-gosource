@@ -1,5 +1,5 @@
 # learn-gosource
-学习go自带的库源码
+学习go官方包源码
 ===================
 ## 声明
 自己理解的东西,不能百分百保证全对,有不对的地方欢迎指正。
@@ -9,7 +9,7 @@ qq:89066216
 
 mail:goudanbaba123@gmail.com
 ## 目录结构
-- src go官方库源码
+- src go官方包源码
 - code 一些demo
 - book 一些笔记或者小知识
 
