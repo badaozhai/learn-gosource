@@ -54,3 +54,105 @@ func (c *Client) Get(url string) (resp *Response, err error) {
 	* 读 resp.Body的时候 读完了记得关闭
 - 如果需要自定义一个request,headers ,此路不通,请使用 NewRequest and Client.Do
 
+最后一行 return c.doFollowingRedirects(req, shouldRedirectGet)
+
+进入方法里面去看看具体怎么实现的
+
+``` golang 
+func (c *Client) doFollowingRedirects(ireq *Request, shouldRedirect func(int) bool) (resp *Response, err error) {
+	var base *url.URL
+	redirectChecker := c.CheckRedirect
+	if redirectChecker == nil {
+		redirectChecker = defaultCheckRedirect
+	}
+	var via []*Request
+
+	if ireq.URL == nil {
+		ireq.closeBody()
+		return nil, errors.New("http: nil Request.URL")
+	}
+
+	req := ireq
+	deadline := c.deadline()
+
+	urlStr := "" // next relative or absolute URL to fetch (after first request)
+	redirectFailed := false
+	for redirect := 0; ; redirect++ {
+		if redirect != 0 {
+			nreq := new(Request)
+			nreq.Cancel = ireq.Cancel
+			nreq.Method = ireq.Method
+			if ireq.Method == "POST" || ireq.Method == "PUT" {
+				nreq.Method = "GET"
+			}
+			nreq.Header = make(Header)
+			nreq.URL, err = base.Parse(urlStr)
+			if err != nil {
+				break
+			}
+			if len(via) > 0 {
+				// Add the Referer header.
+				lastReq := via[len(via)-1]
+				if ref := refererForURL(lastReq.URL, nreq.URL); ref != "" {
+					nreq.Header.Set("Referer", ref)
+				}
+
+				err = redirectChecker(nreq, via)
+				if err != nil {
+					redirectFailed = true
+					break
+				}
+			}
+			req = nreq
+		}
+
+		urlStr = req.URL.String()
+		if resp, err = c.send(req, deadline); err != nil {
+			if !deadline.IsZero() && !time.Now().Before(deadline) {
+				err = &httpError{
+					err:     err.Error() + " (Client.Timeout exceeded while awaiting headers)",
+					timeout: true,
+				}
+			}
+			break
+		}
+
+		if shouldRedirect(resp.StatusCode) {
+			// Read the body if small so underlying TCP connection will be re-used.
+			// No need to check for errors: if it fails, Transport won't reuse it anyway.
+			const maxBodySlurpSize = 2 << 10
+			if resp.ContentLength == -1 || resp.ContentLength <= maxBodySlurpSize {
+				io.CopyN(ioutil.Discard, resp.Body, maxBodySlurpSize)
+			}
+			resp.Body.Close()
+			if urlStr = resp.Header.Get("Location"); urlStr == "" {
+				err = fmt.Errorf("%d response missing Location header", resp.StatusCode)
+				break
+			}
+			base = req.URL
+			via = append(via, req)
+			continue
+		}
+		return resp, nil
+	}
+
+	method := valueOrDefault(ireq.Method, "GET")
+	urlErr := &url.Error{
+		Op:  method[:1] + strings.ToLower(method[1:]),
+		URL: urlStr,
+		Err: err,
+	}
+
+	if redirectFailed {
+		// Special case for Go 1 compatibility: return both the response
+		// and an error if the CheckRedirect function failed.
+		// See https://golang.org/issue/3795
+		return resp, urlErr
+	}
+
+	if resp != nil {
+		resp.Body.Close()
+	}
+	return nil, urlErr
+}
+```

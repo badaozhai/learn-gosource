@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"io/ioutil"
+
 )
 
 func Demo1(){
@@ -37,6 +38,27 @@ func Demo1(){
 
 func Demo2(){
 	resp, _ := http.Get("http://sina.com.cn")
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(body))
+}
+
+func Demo3(){
+	c := http.DefaultClient
+	redirectChecker := c.CheckRedirect
+	fmt.Println(nil)
+	fmt.Println(c.CheckRedirect)
+	fmt.Println(redirectChecker)
+	if c.CheckRedirect == nil{
+		fmt.Println("client.CheckRedirect为空")
+	}
+	if redirectChecker == nil {
+		fmt.Println("redirectChecker为空")
+	}
+}
+
+func Demo4(){
+	resp, _ := http.Get("http://dwz.cn/1i")
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println(string(body))
